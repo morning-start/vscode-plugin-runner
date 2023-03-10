@@ -6,6 +6,8 @@
 	"engines": {
 		"vscode": "^1.76.0"
 	},
+	"publisher": "morningstart",
+	"icon": "images/terminal.png",
 	"categories": [
 		"Other"
 	],
@@ -15,17 +17,22 @@
 		"commands": [
 			{
 				"command": "runner.run",
-				"title": "Run"
+				"title": "Runner: Run"
 			}
 		],
+		"keybindings": {
+			"command": "runner.run",
+			"key": "ctrl+shift+r",
+			"mac": "cmd+shift+r",
+			"when": "editorTextFocus"
+		},
 		"configuration": {
 			"type": "object",
 			"title": "Runner",
 			"properties": {
-				"runner.custom_command": {
+				"runner.commands": {
 					"type": "object",
-					"title": "Custom Command",
-					"markdownDescription": "Enable user to customize command without json. template like `filetype:command` ",
+					"markdownDescription": "Enable user to customize command without json. template like `languageId:command` ",
 					"default": {
 						"javascript": "node",
 						"typescript": "ts-node",
