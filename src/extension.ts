@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// vscode.window.showInformationMessage("Hello World from runner!");
 		// TODO 获取配置
 		const config = vscode.workspace.getConfiguration("runner");
-		let message = JSON.stringify(config.get("custom_command"));
+		let message = JSON.stringify(config.get("commands"));
 		let commands = JSON.parse(message);
 		let languageId = vscode.window.activeTextEditor?.document.languageId || "";
 		let command = commands[languageId] || "";

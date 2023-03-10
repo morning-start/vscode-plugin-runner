@@ -11,19 +11,24 @@
 	"categories": [
 		"Other"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage:javascript",
+		"onLanguage:typescript",
+		"onLanguage:python"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "runner.run",
-				"title": "Runner: Run"
+				"title": "Run",
+				"category": "Runner"
 			}
 		],
 		"keybindings": {
 			"command": "runner.run",
-			"key": "ctrl+shift+r",
-			"mac": "cmd+shift+r",
+			"key": "ctrl+alt+r",
+			"mac": "cmd+alt+r",
 			"when": "editorTextFocus"
 		},
 		"configuration": {

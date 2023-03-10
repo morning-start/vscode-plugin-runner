@@ -14,7 +14,7 @@ This is a simple runner for the file.
 
 ## usage
 
-`ctrl+shift+r` to run the current file.
+`ctrl+alt+r` to run the current file.
 
 or command the `Runner: Run` in command palette.
 
