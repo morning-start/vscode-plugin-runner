@@ -1,8 +1,17 @@
 {
-	"name": "runner",
-	"displayName": "runner",
-	"description": "code runner",
+	"name": "runner-morningstart",
+	"displayName": "V-runner",
+	"description": "code runner except official(Mircosoft) code runner",
 	"version": "0.0.1",
+	"keywords": [
+		"code runner",
+		"runner",
+		"morningstart",
+		"vscode",
+		"javascript",
+		"typescript",
+		"php"
+	],
 	"engines": {
 		"vscode": "^1.76.0"
 	},
@@ -11,6 +20,7 @@
 	"categories": [
 		"Other"
 	],
+	"repository": "https://github.com/morning-start/vscode-plugin-runner",
 	"activationEvents": [
 		"onLanguage:javascript",
 		"onLanguage:typescript",
@@ -21,10 +31,19 @@
 		"commands": [
 			{
 				"command": "runner.run",
-				"title": "Run",
-				"category": "Runner"
+				"title": "Run Code",
+				"category": "Runner",
+				"icon": "$(play)"
 			}
 		],
+		"menus": {
+			"editor/title/run": [
+				{
+					"command": "runner.run",
+					"when": "editorLangId in config.runner.commands"
+				}
+			]
+		},
 		"keybindings": {
 			"command": "runner.run",
 			"key": "ctrl+alt+r",
@@ -41,7 +60,9 @@
 					"default": {
 						"javascript": "node",
 						"typescript": "ts-node",
-						"python": "python"
+						"go": "go run",
+						"r": "Rscript",
+						"php": "php"
 					},
 					"additionalProperties": {
 						"type": "string"
