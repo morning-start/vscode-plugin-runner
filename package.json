@@ -21,7 +21,9 @@
 		"Other"
 	],
 	"repository": "https://github.com/morning-start/vscode-plugin-runner",
-	"activationEvents": [],
+	"activationEvents": [
+		"onLanguage:objective-c"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
@@ -36,7 +38,7 @@
 			"editor/title/run": [
 				{
 					"command": "runner.run",
-					"when": "editorLangId in config.runner.commands"
+					"when": "editorLangId in config.runner.commands || editorLangId == objective-c"
 				}
 			]
 		},
@@ -57,7 +59,7 @@
 						"javascript": "node file",
 						"typescript": "ts-node file",
 						"go": "go run file",
-						"c": "g++ file.c -o file ; ./file"
+						"c": "g++ file"
 					},
 					"additionalProperties": {
 						"type": "string"

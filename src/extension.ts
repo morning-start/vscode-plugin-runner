@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import { json } from "stream/consumers";
 import * as vscode from "vscode";
+import * as fs from "fs";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -22,7 +23,13 @@ export function activate(context: vscode.ExtensionContext) {
 		let message = JSON.stringify(config.get("commands"));
 		let commands = JSON.parse(message);
 		let languageId = vscode.window.activeTextEditor?.document.languageId || "";
+		// 如果languageId是objective-c将文件改为c
+		if (languageId === "objective-c") {
+			languageId = "c";
+		}
 		let command = commands[languageId] || "";
+
+		// vscode.window.showInformationMessage(languageId);
 
 		if (!command) {
 			return vscode.window.showErrorMessage(`No command for ${languageId} !`);
@@ -35,7 +42,14 @@ export function activate(context: vscode.ExtensionContext) {
 		// vscode.window.showInformationMessage(file || "");
 		// 如果file是c则替换为没有扩展名
 		if (file?.endsWith(".c")) {
-			file = file.substring(0, file.lastIndexOf("."));
+			let filename = file.substring(0, file.lastIndexOf("."));
+			// 创建out文件夹
+			let outDir = "out";
+			if (!fs.existsSync(`${dir}\\${outDir}`)) {
+				fs.mkdirSync(`${dir}\\${outDir}`);
+			}
+			// 补充command -o file ; ./file
+			command = `${command} -o ${outDir}/${filename} ; ${outDir}/${filename}`;
 		}
 
 		// TODO 打开terminal, 并切换到当前文件的文件夹路径
@@ -47,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 		shell.show();
 		shell.sendText(`cd ${dir}`);
 		// 全部替换
-		shell.sendText(command.replace(/file/g, file || ""));
+		shell.sendText(command.replace("file", file || ""));
 	});
 
 	context.subscriptions.push(disposable);
