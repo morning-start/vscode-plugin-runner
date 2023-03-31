@@ -52,13 +52,12 @@
 			"properties": {
 				"runner.commands": {
 					"type": "object",
-					"markdownDescription": "Enable user to customize command without json. template like `languageId:command` ",
+					"markdownDescription": "自定义语言运行命令 `languageId` : `command`",
 					"default": {
-						"javascript": "node",
-						"typescript": "ts-node",
-						"go": "go run",
-						"r": "Rscript",
-						"php": "php"
+						"javascript": "node file",
+						"typescript": "ts-node file",
+						"go": "go run file",
+						"c": "g++ file.c -o file ; ./file"
 					},
 					"additionalProperties": {
 						"type": "string"

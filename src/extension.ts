@@ -32,7 +32,11 @@ export function activate(context: vscode.ExtensionContext) {
 		let path = vscode.window.activeTextEditor?.document.fileName;
 		let dir = path?.substring(0, path.lastIndexOf("\\"));
 		let file = path?.substring(path.lastIndexOf("\\") + 1);
-		// vscode.window.showInformationMessage(dir || "");
+		// vscode.window.showInformationMessage(file || "");
+		// 如果file是c则替换为没有扩展名
+		if (file?.endsWith(".c")) {
+			file = file.substring(0, file.lastIndexOf("."));
+		}
 
 		// TODO 打开terminal, 并切换到当前文件的文件夹路径
 		// 判断当前是否有terminal Runner
@@ -42,7 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.createTerminal("Runner");
 		shell.show();
 		shell.sendText(`cd ${dir}`);
-		shell.sendText(`${command} ${file}`);
+		// 全部替换
+		shell.sendText(command.replace(/file/g, file || ""));
 	});
 
 	context.subscriptions.push(disposable);
