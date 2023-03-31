@@ -2,7 +2,7 @@
 	"name": "runner-morningstart",
 	"displayName": "V-runner",
 	"description": "code runner except official(Mircosoft) code runner",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"keywords": [
 		"code runner",
 		"runner",
