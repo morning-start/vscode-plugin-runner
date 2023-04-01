@@ -2,7 +2,9 @@
 
 ![logo](images/terminal.png)
 
-简单的运行脚本的插件，支持多种语言，如：javascript, python, typescript.
+轻量级运行程序插件，依托于 shell 命令。目前只支持 win。
+
+方便的运行当前文件，支持多种语言。
 
 ## features
 

@@ -54,10 +54,11 @@
 					"type": "object",
 					"markdownDescription": "自定义语言运行命令 `languageId` : `command`",
 					"default": {
-						"javascript": "node file",
-						"typescript": "ts-node file",
-						"go": "go run file",
-						"c": "g++ file"
+						"javascript": "node <file>",
+						"typescript": "ts-node <file>",
+						"python": "python <file>",
+						"go": "go run <file>",
+						"c": "g++ <file>"
 					},
 					"additionalProperties": {
 						"type": "string"

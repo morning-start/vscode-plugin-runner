@@ -61,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 		shell.show();
 		shell.sendText(`cd ${dir}`);
 		// 全部替换
-		shell.sendText(command.replace("file", file || ""));
+		shell.sendText(command.replace("<file>", file || ""));
 	});
 
 	context.subscriptions.push(disposable);
