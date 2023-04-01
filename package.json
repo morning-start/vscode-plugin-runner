@@ -21,9 +21,7 @@
 		"Other"
 	],
 	"repository": "https://github.com/morning-start/vscode-plugin-runner",
-	"activationEvents": [
-		"onLanguage:objective-c"
-	],
+	"activationEvents": [],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
