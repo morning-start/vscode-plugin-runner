@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 				fs.mkdirSync(`${dir}\\${outDir}`);
 			}
 			// 补充command -o file ; ./file
-			command = `${command} -o ${outDir}/${filename} \n .\\${outDir}\\${filename}`;
+			command = `${command} -o ${outDir}/${filename}.exe \n .\\${outDir}\\${filename}`;
 		}
 
 		// TODO 打开terminal, 并切换到当前文件的文件夹路径

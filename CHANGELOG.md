@@ -2,28 +2,21 @@
 
 All notable changes to the "runner" extension will be documented in this file.
 
-## [0.0.3] - 2023-03-31
+## [0.0.6] - 2023-07-11
 
-### Added
-
-- support `c`
-
-## [0.0.4] - 2023-03-31
-
-### Added
-
-- support `objective-c`
-
-### Changed
-
-- change the way to run c, add directory `out` to store the executable file
+- [x] **FIX**: fix `c` program like `1.2-a.c` can not compile to `exe`
 
 ## [0.0.5] - 2023-04-01
 
-### Added
+- [x] **ADD**: support `python`
 
-- support `python`
+- [x] **FIX**: change command `<file>`
 
-### Changed
+## [0.0.4] - 2023-03-31
 
-- change command <file>
+- [x] **ADD**: support `objective-c`
+- [x] **FIX**: change the way to run c, add directory `out` to store the executable file
+
+## [0.0.3] - 2023-03-31
+
+- [x] **ADD**: support `c`
