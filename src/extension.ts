@@ -27,7 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (languageId === "objective-c") {
 			languageId = "c";
 		}
-		let command = commands[languageId] || "";
+		let command:String = commands[languageId] || "";
 
 		// vscode.window.showInformationMessage(languageId);
 
@@ -39,10 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
 		let path = vscode.window.activeTextEditor?.document.fileName;
 		let dir = path?.substring(0, path.lastIndexOf("\\"));
 		let file = path?.substring(path.lastIndexOf("\\") + 1);
-		// vscode.window.showInformationMessage(file || "");
-		// 如果file是c则替换为没有扩展名
-		if (file?.endsWith(".c")) {
-			let filename = file.substring(0, file.lastIndexOf("."));
+		// vscode.window.showInformationMessage(dir || "");
+
+		// 需要编译再执行的文件
+		if (languageId === "c" || languageId === "rust") {
+			let filename = file?.substring(0, file.lastIndexOf("."));
 			// 创建out文件夹
 			let outDir = "out";
 			if (!fs.existsSync(`${dir}\\${outDir}`)) {
@@ -59,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 			terminals.find((item) => item.name === "Runner") ||
 			vscode.window.createTerminal("Runner");
 		shell.show();
-		shell.sendText(`cd ${dir}`);
+		shell.sendText(`cd "${dir}"`);
 		// 全部替换
 		shell.sendText(command.replace("<file>", file || ""));
 	});

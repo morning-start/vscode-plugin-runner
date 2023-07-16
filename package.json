@@ -1,7 +1,7 @@
 {
 	"name": "runner-morningstart",
 	"displayName": "V-runner",
-	"description": "code runner except official(Mircosoft) code runner",
+	"description": "runner for signal file",
 	"version": "0.0.7",
 	"keywords": [
 		"code runner",
@@ -10,7 +10,8 @@
 		"vscode",
 		"javascript",
 		"typescript",
-		"php"
+		"php",
+		"rust"
 	],
 	"engines": {
 		"vscode": "^1.76.0"
@@ -58,7 +59,8 @@
 						"typescript": "ts-node <file>",
 						"python": "python <file>",
 						"go": "go run <file>",
-						"c": "g++ <file>"
+						"c": "g++ <file>",
+						"rust": "rustc <file>"
 					},
 					"additionalProperties": {
 						"type": "string"

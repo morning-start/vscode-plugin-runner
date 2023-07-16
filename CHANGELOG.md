@@ -2,6 +2,10 @@
 
 All notable changes to the "runner" extension will be documented in this file.
 
+## [0.0.7] - 2023-07-16
+
+- [x] **ADD**: add `rust` in commend.
+
 ## [0.0.6] - 2023-07-11
 
 - [x] **FIX**: fix `c` program like `1.2-a.c` can not compile to `exe`

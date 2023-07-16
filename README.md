@@ -2,7 +2,7 @@
 
 ![logo](images/terminal.png)
 
-轻便的 runner 插件，基于 powershell 设计。方便的运行当前文件，支持多种语言。支持自定义命令。
+轻便的 runner 插件，基于 powershell 设计。方便的运行单文件文件，支持多种语言。支持自定义命令。
 
 ## features
 
@@ -11,6 +11,7 @@
 - 支持多种语言
   - js, ts
   - go, c(objective-c)
+  - rust
 
 对于 c 语言的运行进行了优化，将编译后的程序都放到同目录的 `out` 文件夹下，方便管理
 
