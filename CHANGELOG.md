@@ -2,6 +2,10 @@
 
 All notable changes to the "runner" extension will be documented in this file.
 
+## [0.0.8] - 2023-07-22
+
+- [x] **FIX**: fix the function with out double cd
+
 ## [0.0.7] - 2023-07-16
 
 - [x] **ADD**: add `rust` in commend.
