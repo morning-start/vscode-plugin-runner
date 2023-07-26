@@ -26,6 +26,7 @@ export function clear() {
 		fs.readdirSync(out).forEach((file) => {
 			fs.unlinkSync(`${out}\\${file}`);
 		});
+		fs.rmdirSync(out);
 		vscode.window.showInformationMessage("✅已经清除out文件夹中的文件!");
 	} else {
 		vscode.window.showErrorMessage("out文件夹不存在!");

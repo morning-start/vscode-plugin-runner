@@ -34,7 +34,7 @@
 			},
 			{
 				"command": "runner.clearOutDir",
-				"title": "clear out dir",
+				"title": "Clear Out Dir",
 				"category": "Runner"
 			}
 		],
