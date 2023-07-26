@@ -21,10 +21,10 @@ export function activate(context: vscode.ExtensionContext) {
 		"runner.clearOutDir",
 		clear
 	);
-	let task = vscode.commands.registerCommand("runner.fixTask", fixTask);
+	// let task = vscode.commands.registerCommand("runner.fixTask", fixTask);
 
 	// let task = vscode.commands.registerCommand("runner.createTask", createTask);
-	context.subscriptions.push(runner, clearOutDir, task);
+	context.subscriptions.push(runner, clearOutDir);
 }
 
 // This method is called when your extension is deactivated
