@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import { compileCommend } from "./compile";
+
 
 const LANGUAGE_LIST = ["c", "rust"];
 let lastDir: string = "";
@@ -36,16 +38,18 @@ function run(command: string, dir: string, filePath: string) {
 	shell.sendText(command.replace("<file>", filePath || ""));
 }
 
-function compile(command: string, dir: string, filename: string): string {
-	// 创建out文件夹
-	let outDir = "out";
-	if (!fs.existsSync(`${dir}\\${outDir}`)) {
-		fs.mkdirSync(`${dir}\\${outDir}`);
-	}
-	// 补充command -o file ; ./file
-	command = `${command} -o ${outDir}/${filename}.exe \n .\\${outDir}\\${filename}`;
 
-	return command;
+
+export function getCurrentPath(file: vscode.TextDocument | undefined): {
+	dir: string;
+	filePath: string;
+	filename: string;
+} {
+	let path = file?.fileName as string;
+	let dir = path.substring(0, path.lastIndexOf("\\"));
+	let filePath = path.substring(path.lastIndexOf("\\") + 1);
+	let filename = filePath.substring(0, filePath.lastIndexOf("."));
+	return { dir, filePath, filename };
 }
 
 export function runner() {
@@ -60,17 +64,14 @@ export function runner() {
 	}
 
 	// TODO 获取当前文件的文件夹路径
-	let path = file?.fileName as string;
-	let dir = path.substring(0, path.lastIndexOf("\\"));
-	let filePath = path.substring(path.lastIndexOf("\\") + 1);
-	let filename = filePath.substring(0, filePath.lastIndexOf("."));
+	let { dir, filePath, filename } = getCurrentPath(file);
 
 	// 需要编译再执行的文件
 	if (LANGUAGE_LIST.includes(languageId)) {
-		command = compile(command, dir, filename);
+		command = compileCommend(command, dir, filename);
 	}
-    // console.log(languageId in LANGUAGE_LIST);
-    
+	// console.log(languageId in LANGUAGE_LIST);
+
 	// 展示消息
 	// vscode.window.showInformationMessage(languageId);
 

@@ -3,6 +3,8 @@
 
 import * as vscode from "vscode";
 import { runner as run } from "./runner";
+import { clear } from "./compile";
+import { createTask as fixTask } from "./compile";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -15,9 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 	let runner = vscode.commands.registerCommand("runner.run", run);
+	let clearOutDir = vscode.commands.registerCommand(
+		"runner.clearOutDir",
+		clear
+	);
+	let task = vscode.commands.registerCommand("runner.fixTask", fixTask);
 
 	// let task = vscode.commands.registerCommand("runner.createTask", createTask);
-	context.subscriptions.push(runner);
+	context.subscriptions.push(runner, clearOutDir, task);
 }
 
 // This method is called when your extension is deactivated

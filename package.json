@@ -31,6 +31,11 @@
 				"title": "Run Code",
 				"category": "Runner",
 				"icon": "$(play)"
+			},
+			{
+				"command": "runner.clearOutDir",
+				"title": "clear out dir",
+				"category": "Runner"
 			}
 		],
 		"menus": {
