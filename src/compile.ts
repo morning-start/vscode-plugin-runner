@@ -20,7 +20,7 @@ export function compileCommend(
 }
 export function clear() {
 	let file = vscode.window.activeTextEditor?.document;
-	let { dir, filePath, filename } = getCurrentPath(file);
+	let { dir, filePath, filename } = getCurrentPath()!;
 	let out = path.join(dir, "out");
 	if (fs.existsSync(out)) {
 		fs.readdirSync(out).forEach((file) => {
