@@ -2,7 +2,7 @@
 	"name": "runner-morningstart",
 	"displayName": "Runner",
 	"description": "runner for signal file",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"keywords": [
 		"code runner",
 		"runner",
