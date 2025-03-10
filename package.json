@@ -1,6 +1,6 @@
 {
 	"name": "runner-morningstart",
-	"displayName": "Runner",
+	"displayName": "File Runner",
 	"description": "runner for signal file",
 	"version": "0.2.1",
 	"keywords": [
