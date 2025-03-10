@@ -1,10 +1,8 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
 import { compileCommend } from "./compile";
 import * as path from "path";
 
 const LANGUAGE_LIST = ["c", "rust"];
-let lastDir: string = "";
 
 /**
  * 获取文件的语言ID
@@ -29,19 +27,14 @@ function getCommand(languageId: string): string {
 	return command;
 }
 
-function run(command: string, dir: string, filePath: string) {
+function openTerminalAtCurrentPath(command: string,dir:string, filePath: string) {
 	let terminals = vscode.window.terminals;
 	let shell = terminals.find((item) => item.name === "Runner");
-	const pathInfo = getCurrentPath(); // 获取当前文件路径信息
-	if (!pathInfo) {
-		return; // 如果没有活动编辑器或路径信息，直接退出
-	}
-
 	if (!shell) {
 		// 创建终端并设置工作目录
 		shell = vscode.window.createTerminal({
 			name: "Current File Terminal", // 终端名称
-			cwd: pathInfo.dir, // 设置工作目录为当前文件所在目录
+			cwd: dir, // 设置工作目录为当前文件所在目录
 		});
 	}
 	shell.show();
@@ -103,5 +96,5 @@ export function runner() {
 	// TODO 打开terminal
 	// 切换到当前文件的文件夹路径
 	// 运行命令
-	run(command, dir, filePath);
+	openTerminalAtCurrentPath(command,dir ,filePath);
 }
