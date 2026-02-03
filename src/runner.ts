@@ -36,31 +36,45 @@ function getCommand(languageId: string): string {
 }
 
 /**
- * 在当前路径打开终端并执行命令
+ * 使用 VS Code Tasks API 执行命令
  * 
- * 此函数用于在Visual Studio Code中，根据当前文件路径打开一个终端，并在该终端中执行特定命令
- * 它首先尝试查找一个名为"Runner"的现有终端，如果找不到，则创建一个新的终端实例
+ * 此函数使用 VS Code 官方的 Tasks API 来执行命令，这是比操作终端更可靠的方式
+ * 它会自动处理工作目录，并在输出面板中显示结果
  * 
  * @param command 要执行的命令，其中的"<file>"会被替换为当前文件的路径
- * @param dir 当前文件所在的目录，用于设置终端的工作目录
+ * @param dir 当前文件所在的目录，用于设置任务的工作目录
  * @param filePath 当前文件的路径，用于替换命令中的"<file>"部分
  */
-function openTerminalAtCurrentPath(command: string,dir:string, filePath: string) {
-	// 获取所有已打开的终端
-	let terminals = vscode.window.terminals;
-	// 尝试找到一个名为"Runner"的终端
-	let shell = terminals.find((item) => item.name === "Runner");
-	if (!shell) {
-		// 创建终端并设置工作目录
-		shell = vscode.window.createTerminal({
-			name: "Runner", // 终端名称
-			cwd: dir, // 设置工作目录为当前文件所在目录
-		});
+async function executeCommandViaTasks(command: string, dir: string, filePath: string) {
+	// 替换命令中的 <file> 占位符
+	const processedCommand = command.replace("<file>", filePath || "");
+	
+	// 创建任务定义
+	const taskDefinition: vscode.TaskDefinition = {
+		type: "shell",
+		command: processedCommand,
+	};
+	
+	// 创建 ShellExecution 来执行命令
+	const execution = new vscode.ShellExecution(processedCommand, {
+		cwd: dir, // 设置工作目录
+	});
+	
+	// 创建任务
+	const task = new vscode.Task(
+		taskDefinition,
+		vscode.TaskScope.Workspace,
+		"Runner",
+		"runner",
+		execution
+	);
+	
+	// 执行任务
+	try {
+		await vscode.tasks.executeTask(task);
+	} catch (error) {
+		vscode.window.showErrorMessage(`Failed to execute task: ${error}`);
 	}
-	// 显示终端
-	shell.show();
-	// 发送命令到终端执行，其中"<file>"会被当前文件路径替换
-	shell.sendText(command.replace("<file>", filePath || ""));
 }
 
 /**
@@ -95,35 +109,43 @@ export function getCurrentPath(): {
  * 运行当前文件的命令
  * 该函数根据当前文件的编程语言获取相应的执行命令，并在终端中运行该命令
  */
-export function runner() {
-    // 获取当前活动的文本编辑器的文档
-    let file = vscode.window.activeTextEditor?.document;
-    // 获取当前文件的编程语言标识符
-    let languageId = getLanguageId(file);
-    // 根据编程语言获取相应的执行命令
-    let command: string = getCommand(languageId);
+export async function runner() {
+    try {
+        // 获取当前活动的文本编辑器的文档
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage("No active editor found.");
+            return;
+        }
+        
+        const file = editor.document;
+        // 获取当前文件的编程语言标识符
+        const languageId = getLanguageId(file);
+        // 根据编程语言获取相应的执行命令
+        let command: string = getCommand(languageId);
 
-    // vscode.window.showInformationMessage(languageId);
+        // 如果没有找到对应的执行命令，则显示错误消息并返回
+        if (!command) {
+            vscode.window.showErrorMessage(`No command for ${languageId} !`);
+            return;
+        }
 
-    // 如果没有找到对应的执行命令，则显示错误消息并返回
-    if (!command) {
-        return vscode.window.showErrorMessage(`No command for ${languageId} !`);
+        // 获取当前文件的路径信息
+        const pathInfo = getCurrentPath();
+        if (!pathInfo) {
+            return;
+        }
+        
+        const { dir, filePath, filename } = pathInfo;
+
+        // 需要编译再执行的文件
+        if (LANGUAGE_LIST.includes(languageId)) {
+            command = compileCommend(command, dir, filename);
+        }
+
+        // 使用 Tasks API 执行命令
+        await executeCommandViaTasks(command, dir, filePath);
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to run command: ${error}`);
     }
-
-    // TODO 获取当前文件的文件夹路径
-    let { dir, filePath, filename } = getCurrentPath()!;
-
-    // 需要编译再执行的文件
-    if (LANGUAGE_LIST.includes(languageId)) {
-        command = compileCommend(command, dir, filename);
-    }
-    // console.log(languageId in LANGUAGE_LIST);
-
-    // 展示消息
-    // vscode.window.showInformationMessage(languageId);
-
-    // TODO 打开terminal
-    // 切换到当前文件的文件夹路径
-    // 运行命令
-    openTerminalAtCurrentPath(command,dir ,filePath);
 }
