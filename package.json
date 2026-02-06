@@ -39,6 +39,12 @@
 				"command": "runner.clearOutDir",
 				"title": "Clear Out Dir",
 				"category": "Runner"
+			},
+			{
+				"command": "runner.runProject",
+				"title": "Run Project",
+				"category": "Runner",
+				"icon": "$(run-all)"
 			}
 		],
 		"menus": {
@@ -116,6 +122,25 @@
 					"type": "string",
 					"default": "out",
 					"description": "编译输出目录（相对路径）"
+				},
+				"runner.projectCommands": {
+					"type": "object",
+					"markdownDescription": "项目运行命令配置。支持以下占位符：\n- `<workspace>`: 工作区根目录\n- `<file>`: 当前打开的文件路径",
+					"default": {
+						"npm": "npm run dev",
+						"yarn": "yarn dev",
+						"pnpm": "pnpm dev",
+						"python": "python <file>",
+						"node": "node <file>"
+					},
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"runner.projectDefaultCommand": {
+					"type": "string",
+					"default": "npm",
+					"description": "默认的项目运行命令类型"
 				}
 			}
 		}
