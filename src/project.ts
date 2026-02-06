@@ -1,95 +1,13 @@
 import * as vscode from "vscode";
 import * as path from "path";
-
-/**
- * 获取项目运行命令配置
- * @param commandType 命令类型（如 npm、yarn、pnpm）
- * @returns 对应的命令，如果未找到则返回 null
- */
-function getProjectCommand(commandType: string): string | null {
-	const config = vscode.workspace.getConfiguration("runner");
-	const commands = config.get<Record<string, string>>("projectCommands") || {};
-	return commands[commandType] || null;
-}
-
-/**
- * 获取默认的项目运行命令类型
- * @returns 默认命令类型
- */
-function getDefaultCommandType(): string {
-	const config = vscode.workspace.getConfiguration("runner");
-	return config.get<string>("projectDefaultCommand") || "npm";
-}
-
-/**
- * 获取工作区根目录
- * @returns 工作区根目录路径，如果没有打开工作区则返回 null
- */
-function getWorkspaceRoot(): string | null {
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders || workspaceFolders.length === 0) {
-		return null;
-	}
-	return workspaceFolders[0].uri.fsPath;
-}
-
-/**
- * 获取当前打开的文件路径
- * @returns 当前文件路径，如果没有打开文件则返回 null
- */
-function getCurrentFile(): string | null {
-	const editor = vscode.window.activeTextEditor;
-	if (!editor) {
-		return null;
-	}
-	return editor.document.uri.fsPath;
-}
-
-/**
- * 使用 VS Code Tasks API 执行项目运行命令
- *
- * @param command 要执行的命令
- * @param workspaceRoot 工作区根目录
- * @param filePath 当前文件路径
- * @param name 任务名称
- */
-async function executeProjectCommand(
-	command: string,
-	workspaceRoot: string,
-	filePath: string | null,
-	name: string
-): Promise<void> {
-	// 替换命令中的占位符
-	let processedCommand = command.replace(/<workspace>/g, workspaceRoot);
-
-	// 如果命令包含 <file> 占位符，替换它
-	if (filePath) {
-		processedCommand = processedCommand.replace(/<file>/g, filePath);
-	}
-
-	// 创建任务定义
-	const taskDefinition: vscode.TaskDefinition = {
-		type: "shell",
-		command: processedCommand,
-	};
-
-	// 创建 ShellExecution 来执行命令
-	const execution = new vscode.ShellExecution(processedCommand, {
-		cwd: workspaceRoot,
-	});
-
-	// 创建任务
-	const task = new vscode.Task(
-		taskDefinition,
-		vscode.TaskScope.Workspace,
-		name,
-		"runner",
-		execution
-	);
-
-	// 执行任务
-	await vscode.tasks.executeTask(task);
-}
+import {
+	getProjectCommand,
+	getDefaultCommandType,
+	getWorkspaceRoot,
+	getCurrentFile,
+	executeProjectCommand,
+	processProjectCommand,
+} from "./utils";
 
 /**
  * 选择项目运行命令类型
@@ -153,11 +71,17 @@ export async function runProject(): Promise<void> {
 			return;
 		}
 
-		// 执行项目运行命令
-		await executeProjectCommand(
+		// 处理命令中的占位符
+		const processedCommand = processProjectCommand(
 			projectCommand,
 			workspaceRoot,
-			currentFile,
+			currentFile
+		);
+
+		// 执行项目运行命令
+		await executeProjectCommand(
+			processedCommand,
+			workspaceRoot,
 			`Run Project (${commandType})`
 		);
 

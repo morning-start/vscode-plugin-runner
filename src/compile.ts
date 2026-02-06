@@ -1,70 +1,16 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
 import * as path from "path";
-import { getCurrentPath } from "./runner";
+import {
+	getCompileCommand,
+	getCompileOutDirName,
+	processCompileCommand,
+	ensureOutDir,
+	removeDir,
+	getCurrentPath,
+} from "./utils";
+import type { CompileCommand } from "./types";
 
-/**
- * 编译命令配置接口
- */
-export interface CompileCommand {
-	compile: string;
-	run: string;
-}
-
-/**
- * 处理编译命令中的占位符
- * @param command 原始命令
- * @param filePath 源文件路径
- * @param outDir 输出目录
- * @param outName 输出文件名（不含扩展名）
- * @returns 处理后的命令
- */
-export function processCompileCommand(
-	command: string,
-	filePath: string,
-	outDir: string,
-	outName: string
-): string {
-	return command
-		.replace(/<file>/g, filePath)
-		.replace(/<outDir>/g, outDir)
-		.replace(/<out>/g, outName);
-}
-
-/**
- * 获取编译输出目录
- * @param dir 当前文件所在目录
- * @returns 编译输出目录的完整路径
- */
-export function getCompileOutDir(dir: string): string {
-	const config = vscode.workspace.getConfiguration("runner");
-	const outDirName = config.get<string>("compileOutDir") || "out";
-	return path.join(dir, outDirName);
-}
-
-/**
- * 确保输出目录存在
- * @param dir 当前文件所在目录
- * @returns 输出目录的完整路径
- */
-export function ensureOutDir(dir: string): string {
-	const outDir = getCompileOutDir(dir);
-	if (!fs.existsSync(outDir)) {
-		fs.mkdirSync(outDir, { recursive: true });
-	}
-	return outDir;
-}
-
-/**
- * 获取编译命令配置
- * @param languageId 语言ID
- * @returns 编译命令配置，如果没有找到则返回 null
- */
-export function getCompileCommand(languageId: string): CompileCommand | null {
-	const config = vscode.workspace.getConfiguration("runner");
-	const compileCommands = config.get<Record<string, CompileCommand>>("compileCommands") || {};
-	return compileCommands[languageId] || null;
-}
+export type { CompileCommand };
 
 /**
  * 构建编译和运行的完整命令
@@ -85,7 +31,8 @@ export function buildCompileCommands(
 		return null;
 	}
 
-	const outDir = ensureOutDir(dir);
+	const outDirName = getCompileOutDirName();
+	const outDir = ensureOutDir(dir, outDirName);
 	const outName = path.parse(filename).name;
 
 	const compile = processCompileCommand(compileConfig.compile, filePath, outDir, outName);
@@ -105,16 +52,11 @@ export function clearOutDir(): void {
 	}
 
 	const { dir } = pathInfo;
-	const outDir = getCompileOutDir(dir);
+	const outDirName = getCompileOutDirName();
+	const outDir = path.join(dir, outDirName);
 
-	if (fs.existsSync(outDir)) {
-		// 删除目录中的所有文件
-		const files = fs.readdirSync(outDir);
-		for (const file of files) {
-			const filePath = path.join(outDir, file);
-			fs.unlinkSync(filePath);
-		}
-		fs.rmdirSync(outDir);
+	if (outDir) {
+		removeDir(outDir);
 		vscode.window.showInformationMessage("✅ 已清除输出目录!");
 	} else {
 		vscode.window.showWarningMessage("输出目录不存在!");
