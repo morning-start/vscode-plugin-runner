@@ -1,76 +1,139 @@
-# Runner
+# File Runner
 
 ![logo](images/terminal.png)
 
-Lightweight runner extension based on powershell design. Easy to run the current file, support multiple languages. Supports custom commands.
+A lightweight VS Code file runner extension, based on command-line. Supports quick execution of single-file code with built-in support for multiple programming languages, while allowing users to customize run commands.
 
-## features
+## Features
 
-- The system automatically jumps to the directory of the current file
-- Convenient custom commands
-- Multiple languages are supported
-- js, ts
-- go, c(objective-c)
+- **One-click Run**: Quickly run the current file using the shortcut `Ctrl+Alt+R` (Mac: `Cmd+Alt+R`) or by clicking the run button in the top-right corner of the editor
+- **Multi-language Support**: Built-in support for JavaScript, TypeScript, Python, Go, C, C++, Rust, Kotlin, and more
+- **Compiled Language Support**: Automatically handles the compilation process, compiling before running, with compilation outputs saved in the `out` directory
+- **Custom Commands**: Supports user-defined run commands and compile commands
+- **Smart Recognition**: Automatically selects the appropriate execution method based on the file's Language ID
 
-The operation of the c language is optimized, and the compiled programs are placed under the 'out' folder in the same directory for easy management
+## Supported Languages
 
-![show](images/2023-03-31-23-35-18.png)
+### Interpreted Languages (Direct Run)
 
-&gt; Note that the file should be changed to the exact languageId.
-&gt; It's in the lower right corner
-&gt; ![languageId](images/2023-03-31-22-40-58.png)
+| Language      | Default Command            |
+| ------------- | -------------------------- |
+| JavaScript    | `node <file>`            |
+| TypeScript    | `ts-node <file>`         |
+| Python        | `python <file>`          |
+| Go            | `go run <file>`          |
+| Kotlin Script | `kotlinc -script <file>` |
 
-## usage
+### Compiled Languages (Compile then Run)
 
-`ctrl+alt+r` : shortcut key to run the current file,
+| Language | Compile Command                                           | Run Command                      |
+| -------- | --------------------------------------------------------- | -------------------------------- |
+| C        | `gcc <file> -o <outDir>/<out>`                          | `<outDir>/<out>`               |
+| C++      | `g++ <file> -o <outDir>/<out>`                          | `<outDir>/<out>`               |
+| Rust     | `rustc <file> -o <outDir>/<out>`                        | `<outDir>/<out>`               |
+| Kotlin   | `kotlinc <file> -include-runtime -d <outDir>/<out>.jar` | `java -jar <outDir>/<out>.jar` |
 
-Or `Ctrl+shift+p` select the `Runner: Run` command
+> **Note**: Objective-C files (`.m`) are recognized and processed as C language.
 
-Or click the run icon in the top right corner
+## Usage
 
-## setting
+### Quick Start
 
-You can set a custom command very easily
+1. Open the code file you want to run
+2. Press `Ctrl+Alt+R` (Mac: `Cmd+Alt+R`) or click the ▶️ run button in the top-right corner of the editor
+3. View the terminal output
 
-![setting](images/2023-03-31-23-40-52.png)
+### Clear Output Directory
 
-## Note for C
+Run the **Clear Out Dir** command to clear the `out` folder in the current file's directory, making it easy to organize compiled output files.
 
-The original intention of this extension is to run C programs, because the existing C extension is somewhat complex, and the program results are displayed with a lot of commands, which is not friendly to beginners.
+## Configuration
 
-Although this plugin solves this problem, this plugin does not debug... So I recommend at the same time the use of [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) this plugin, use it to debug will be better.
+### Direct Run Command Configuration (`runner.runCommands`)
 
-Here, in order for C/C++ to also be used to execute files in the out folder, you need to make some changes to the `.vscode/task.json` file. As follows:
+For interpreted languages, the configuration format is `languageId: command`.
+
+Use `<file>` as a placeholder for the file path.
 
 ```json
 {
-	"tasks": [
-		{
-			"type": "cppbuild",
-			"label": "C/C++: gcc.exe 生成活动文件",
-			"command": "D:\\Language\\C\\Cygwin\\bin\\gcc.exe",
-			"args": [
-				"-fdiagnostics-color=always",
-				"-g",
-				"${file}",
-				"-o",
-				"${fileDirname}\\out\\${fileBasenameNoExtension}.exe"
-			],
-			"options": {
-				"cwd": "${fileDirname}"
-			},
-			"problemMatcher": ["$gcc"],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"detail": "调试器生成的任务。"
-		}
-	],
-	"version": "2.0.0"
+  "runner.runCommands": {
+    "javascript": "node <file>",
+    "typescript": "ts-node <file>",
+    "python": "python <file>",
+    "go": "go run <file>",
+    "kotlinscript": "kotlinc -script <file>"
+  }
 }
 ```
 
-## Thanks
+![Direct Run Command Configuration](images/直接运行命令配置.png)
 
-Thank myself 👍
+### Compile and Run Command Configuration (`runner.compileCommands`)
+
+For compiled languages, the following placeholders are supported:
+
+- `<file>`: Source file path
+- `<out>`: Output filename (without extension)
+- `<outDir>`: Output directory
+
+```json
+{
+  "runner.compileCommands": {
+    "c": {
+      "compile": "gcc <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "cpp": {
+      "compile": "g++ <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "rust": {
+      "compile": "rustc <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "kotlin": {
+      "compile": "kotlinc <file> -include-runtime -d <outDir>/<out>.jar",
+      "run": "java -jar <outDir>/<out>.jar"
+    }
+  }
+}
+```
+
+### Compile Output Directory (`runner.compileOutDir`)
+
+Set the name of the compilation output directory (relative path), default is `out`.
+
+```json
+{
+  "runner.compileOutDir": "out"
+}
+```
+
+### C Language Project Structure Example
+
+![C Language Project Structure Example](images/C语言编译的项目结构示例.png)
+
+### Kotlin Compiled Project Structure Example
+
+![Kotlin Compiled Project Structure Example](images/kotlin编译后的项目结构示例.png)
+
+## How to Get Language ID
+
+![Language ID Guide](images/LanguageId指南.png)
+
+In VS Code, click the file type indicator in the bottom-right corner to view the current file's Language ID.
+
+## Keyboard Shortcuts
+
+| Shortcut                       | Command  | Description          |
+| ------------------------------ | -------- | -------------------- |
+| `Ctrl+Alt+R` / `Cmd+Alt+R` | Run Code | Run the current file |
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md)
+
+## License
+
+[MIT](LICENSE)

@@ -2,33 +2,90 @@
 
 All notable changes to the "runner" extension will be documented in this file.
 
-## [0.0.11]
+## [0.3.0] - 2025-02-06
 
-增加清除out文件夹功能，方便整理out文件夹
+- **FEAT**: 使用 Tasks API 替代终端执行命令
+- **REFACTOR**: 重构代码运行器以支持编译型和解释型语言
+
+## [0.2.3] - 2025-02-05
+
+- **REFACTOR**: 重构 runner.ts 文件
+
+## [0.2.2] - 2025-02-05
+
+- **CHORE**: 版本更新
+
+## [0.2.1] - 2025-02-05
+
+- **CHORE**: 版本更新
+
+## [0.2.0] - 2025-02-05
+
+- **FEAT**: 重构 Runner 插件架构
+- **FEAT**: 重构运行器功能
+
+## [0.1.0] - 2025-02-05
+
+- **FEAT**: 重构 Runner 插件
+- **FEAT**: 重构运行器功能
+
+## [0.0.13] - 2023-07-22
+
+- **CHORE**: 版本更新
+
+## [0.0.12] - 2023-07-22
+
+- **CHORE**: 版本更新
+
+## [0.0.11] - 2023-07-22
+
+- **FEAT**: 增加清除 out 文件夹功能，方便整理 out 文件夹
+
+## [0.0.10] - 2023-07-22
+
+- **CHORE**: 版本更新
+
+## [0.0.9] - 2023-07-22
+
+- **CHORE**: 版本更新
 
 ## [0.0.8] - 2023-07-22
 
-- [x] **FIX**: fix the function with out double cd
+- **FIX**: 修复函数中双 cd 的问题
 
 ## [0.0.7] - 2023-07-16
 
-- [x] **ADD**: add `rust` in commend.
+- **FEAT**: 添加 Rust 语言支持
 
 ## [0.0.6] - 2023-07-11
 
-- [x] **FIX**: fix `c` program like `1.2-a.c` can not compile to `exe`
+- **FIX**: 修复类似 `1.2-a.c` 的 C 程序文件名无法编译为可执行文件的问题
 
 ## [0.0.5] - 2023-04-01
 
-- [x] **ADD**: support `python`
-
-- [x] **FIX**: change command `<file>`
+- **FEAT**: 支持 Python 语言
+- **FIX**: 更改命令格式，使用 `<file>` 作为文件占位符
+- **PERF**: 删除无用的激活事件
 
 ## [0.0.4] - 2023-03-31
 
-- [x] **ADD**: support `objective-c`
-- [x] **FIX**: change the way to run c, add directory `out` to store the executable file
+- **FEAT**: 支持 Objective-C 语言
+- **PERF**: 更改 C 语言的运行方式，添加 `out` 目录存储可执行文件
 
 ## [0.0.3] - 2023-03-31
 
-- [x] **ADD**: support `c`
+- **FEAT**: 支持 C 语言
+- **DOCS**: 更改日志为中文
+
+## [0.0.2] - 2023-03-30
+
+- **FEAT**: 添加右上角运行按钮
+- **FEAT**: 添加图标和快捷键
+- **FIX**: 删除无关激活事件
+- **FIX**: 修改快捷键
+
+## [0.0.1] - 2023-03-30
+
+- **FEAT**: 完成基本功能
+- **DOCS**: 完善文件描述
+- **CHORE**: 初始化项目

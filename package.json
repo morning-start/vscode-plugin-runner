@@ -11,10 +11,13 @@
 		"javascript",
 		"typescript",
 		"php",
-		"rust"
+		"rust",
+		"kotlin",
+		"objective-c",
+		"kotlinscript"
 	],
 	"engines": {
-		"vscode": "^1.76.0"
+		"vscode": "^1.109.0"
 	},
 	"publisher": "morningstart",
 	"icon": "images/terminal.png",

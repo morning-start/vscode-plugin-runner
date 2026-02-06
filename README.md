@@ -1,78 +1,139 @@
-# Runner
+# File Runner
 
 ![logo](images/terminal.png)
 
-轻便的 runner 插件，基于 powershell 设计。方便的运行单文件文件，支持多种语言。支持自定义命令。
+一款轻量级的 VS Code 文件运行插件，基于命令行功能。支持快速运行单文件代码，内置多种编程语言支持，同时允许用户自定义运行命令。
 
-## features
+## 功能特性
 
-- 会自动跳转到当前文件的目录下运行
-- 方便的自定义命令
-- 支持多种语言
-  - js, ts
-  - go, c(objective-c)
-  - rust
+- **一键运行**：通过快捷键 `Ctrl+Alt+R`（Mac: `Cmd+Alt+R`）或点击编辑器右上角的运行按钮，快速运行当前文件
+- **多语言支持**：内置支持 JavaScript、TypeScript、Python、Go、C、C++、Rust、Kotlin 等多种编程语言
+- **编译型语言支持**：自动处理编译流程，先编译后运行，编译输出保存在 `out` 目录
+- **自定义命令**：支持用户自定义运行命令和编译命令
+- **智能识别**：根据文件语言 ID 自动选择对应的运行方式
 
-### out 文件夹
+## 支持的语言
 
-对于编译型语言的运行进行了优化，将编译后的程序都放到同目录的 `out` 文件夹下，方便管理
+### 解释型语言（直接运行）
 
-![show](images/2023-03-31-23-35-18.png)
+| 语言          | 默认命令                   |
+| ------------- | -------------------------- |
+| JavaScript    | `node <file>`            |
+| TypeScript    | `ts-node <file>`         |
+| Python        | `python <file>`          |
+| Go            | `go run <file>`          |
+| Kotlin Script | `kotlinc -script <file>` |
 
-## usage
+### 编译型语言（编译后运行）
 
-`ctrl+alt+r`：快捷键运行当前文件，
+| 语言   | 编译命令                                                  | 运行命令                         |
+| ------ | --------------------------------------------------------- | -------------------------------- |
+| C      | `gcc <file> -o <outDir>/<out>`                          | `<outDir>/<out>`               |
+| C++    | `g++ <file> -o <outDir>/<out>`                          | `<outDir>/<out>`               |
+| Rust   | `rustc <file> -o <outDir>/<out>`                        | `<outDir>/<out>`               |
+| Kotlin | `kotlinc <file> -include-runtime -d <outDir>/<out>.jar` | `java -jar <outDir>/<out>.jar` |
 
-或者 `Ctrl+shift+p` 选择 `Runner: Run` 命令
+> **注意**：Objective-C 文件（`.m`）会被识别为 C 语言进行处理。
 
-或者 点击右上角运行图标
+## 使用方法
 
-支持快速清理 `out` 文件夹命令：`Runner: clearOutDir`
+### 快速开始
 
-## setting
+1. 打开需要运行的代码文件
+2. 按下 `Ctrl+Alt+R`（Mac: `Cmd+Alt+R`）或点击编辑器右上角的 ▶️ 运行按钮
+3. 查看终端输出结果
 
- 
-你可以非常轻松的设置一个自定义的命令
+### 清除输出目录
 
-![setting](images/2023-03-31-23-40-52.png)
+运行命令 **Clear Out Dir** 可以清除当前文件所在目录的 `out` 文件夹，方便整理编译输出文件。
 
-## Note for C
+## 配置说明
 
-这个插件的初衷就是为了运行 C 程序，因为现有的 C 的运行插件，多少有些复杂，而且显示的程序结果带有很多命令，对初学者并不友好。
+### 直接运行命令配置 (`runner.runCommands`)
 
-虽然这款插件解决了这个问题，但是这款插件没有 debug。。。所以我推荐同时使用 [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) 这款插件，用它的 debug 会好一些。
+适用于解释型语言，配置格式为 `languageId: command`。
 
-这里为了使 C/C++同样使用在 out 文件夹下执行文件，需要对 `.vscode/task.json` 文件做一些修改。如下：
+使用 `<file>` 作为文件路径占位符。
 
 ```json
 {
-	"tasks": [
-		{
-			"type": "cppbuild",
-			"label": "C/C++: gcc.exe 生成活动文件",
-			"command": "D:\\Language\\C\\Cygwin\\bin\\gcc.exe",
-			"args": [
-				"-fdiagnostics-color=always",
-				"-g",
-				"${file}",
-				"-o",
-				"${fileDirname}\\out\\${fileBasenameNoExtension}.exe"
-			],
-			"options": {
-				"cwd": "${fileDirname}"
-			},
-			"problemMatcher": ["$gcc"],
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"detail": "调试器生成的任务。"
-		}
-	],
-	"version": "2.0.0"
+  "runner.runCommands": {
+    "javascript": "node <file>",
+    "typescript": "ts-node <file>",
+    "python": "python <file>",
+    "go": "go run <file>",
+    "kotlinscript": "kotlinc -script <file>"
+  }
 }
 ```
 
-## 致谢
+![直接运行命令配置](images/直接运行命令配置.png)
 
-感谢我自己 👍
+### 编译运行命令配置 (`runner.compileCommands`)
+
+适用于编译型语言，支持以下占位符：
+
+- `<file>`: 源文件路径
+- `<out>`: 输出文件名（不含扩展名）
+- `<outDir>`: 输出目录
+
+```json
+{
+  "runner.compileCommands": {
+    "c": {
+      "compile": "gcc <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "cpp": {
+      "compile": "g++ <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "rust": {
+      "compile": "rustc <file> -o <outDir>/<out>",
+      "run": "<outDir>/<out>"
+    },
+    "kotlin": {
+      "compile": "kotlinc <file> -include-runtime -d <outDir>/<out>.jar",
+      "run": "java -jar <outDir>/<out>.jar"
+    }
+  }
+}
+```
+
+### 编译输出目录 (`runner.compileOutDir`)
+
+设置编译输出的目录名称（相对路径），默认为 `out`。
+
+```json
+{
+  "runner.compileOutDir": "out"
+}
+```
+
+### C 语言项目结构示例
+
+![C语言编译的项目结构示例](images/C语言编译的项目结构示例.png)
+
+### Kotlin 编译后的项目结构示例
+
+![kotlin编译后的项目结构示例](images/kotlin编译后的项目结构示例.png)
+
+## 如何获取 Language ID
+
+![LanguageId指南](images/LanguageId指南.png)
+
+在 VS Code 中，点击右下角的文件类型标识，即可查看当前文件的 Language ID。
+
+## 快捷键
+
+| 快捷键                         | 命令     | 说明         |
+| ------------------------------ | -------- | ------------ |
+| `Ctrl+Alt+R` / `Cmd+Alt+R` | Run Code | 运行当前文件 |
+
+## 更新日志
+
+详见 [CHANGELOG.md](CHANGELOG.md)
+
+## 许可证
+
+[MIT](LICENSE)
