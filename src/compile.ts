@@ -3,78 +3,128 @@ import * as fs from "fs";
 import * as path from "path";
 import { getCurrentPath } from "./runner";
 
-export function compileCommend(
+/**
+ * 编译命令配置接口
+ */
+export interface CompileCommand {
+	compile: string;
+	run: string;
+}
+
+/**
+ * 处理编译命令中的占位符
+ * @param command 原始命令
+ * @param filePath 源文件路径
+ * @param outDir 输出目录
+ * @param outName 输出文件名（不含扩展名）
+ * @returns 处理后的命令
+ */
+export function processCompileCommand(
 	command: string,
-	dir: string,
-	filename: string
+	filePath: string,
+	outDir: string,
+	outName: string
 ): string {
-	// 创建out文件夹
-	let outDir = "out";
-	if (!fs.existsSync(path.join(dir, "out"))) {
-		fs.mkdirSync(path.join(dir, "out"));
-	}
-	// 补充command -o file ; ./file
-	command = `${command} -o ${outDir}/${filename}.exe \n .\\${outDir}\\${filename}`;
-
-	return command;
-}
-export function clear() {
-	let file = vscode.window.activeTextEditor?.document;
-	let { dir, filePath, filename } = getCurrentPath()!;
-	let out = path.join(dir, "out");
-	if (fs.existsSync(out)) {
-		fs.readdirSync(out).forEach((file) => {
-			fs.unlinkSync(`${out}\\${file}`);
-		});
-		fs.rmdirSync(out);
-		vscode.window.showInformationMessage("✅已经清除out文件夹中的文件!");
-	} else {
-		vscode.window.showErrorMessage("out文件夹不存在!");
-	}
+	return command
+		.replace(/<file>/g, filePath)
+		.replace(/<outDir>/g, outDir)
+		.replace(/<out>/g, outName);
 }
 
 /**
- * Gets the path of the .vscode folder in the current working directory.
- * Returns null if the .vscode folder does not exist.
+ * 获取编译输出目录
+ * @param dir 当前文件所在目录
+ * @returns 编译输出目录的完整路径
  */
-function getVscodeFolderPath(): string | undefined {
-	const workspaceFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri
-		?.fsPath as string;
-	
-	const vscodeFolderPath = path.join(workspaceFolderPath, ".vscode");
-
-	if (
-		fs.existsSync(vscodeFolderPath) &&
-		fs.statSync(vscodeFolderPath).isDirectory()
-	) {
-		return vscodeFolderPath;
-	} else {
-		return undefined;
-	}
+export function getCompileOutDir(dir: string): string {
+	const config = vscode.workspace.getConfiguration("runner");
+	const outDirName = config.get<string>("compileOutDir") || "out";
+	return path.join(dir, outDirName);
 }
 
 /**
- * Reads the content of the task.json file in the specified directory.
- * Returns the content as a string, or null if the file does not exist.
+ * 确保输出目录存在
+ * @param dir 当前文件所在目录
+ * @returns 输出目录的完整路径
  */
-function readTaskJsonContent(directory: string): string | undefined {
-	const taskJsonPath = path.join(directory, "task.json");
-
-	if (fs.existsSync(taskJsonPath) && fs.statSync(taskJsonPath).isFile()) {
-		const content = fs.readFileSync(taskJsonPath, "utf8");
-		return content;
-	} else {
-		return undefined;
+export function ensureOutDir(dir: string): string {
+	const outDir = getCompileOutDir(dir);
+	if (!fs.existsSync(outDir)) {
+		fs.mkdirSync(outDir, { recursive: true });
 	}
+	return outDir;
 }
 
-export function createTask() {
-	// 获取工作目录下.vscode文件
-	const vscodeFolderPath = getVscodeFolderPath();
-	let task = readTaskJsonContent(vscodeFolderPath as string);
-	if (typeof task === "undefined") {
-		vscode.window.showErrorMessage(".vscode/task.json文件不存在!");
+/**
+ * 获取编译命令配置
+ * @param languageId 语言ID
+ * @returns 编译命令配置，如果没有找到则返回 null
+ */
+export function getCompileCommand(languageId: string): CompileCommand | null {
+	const config = vscode.workspace.getConfiguration("runner");
+	const compileCommands = config.get<Record<string, CompileCommand>>("compileCommands") || {};
+	return compileCommands[languageId] || null;
+}
+
+/**
+ * 构建编译和运行的完整命令
+ * @param languageId 语言ID
+ * @param dir 当前文件所在目录
+ * @param filePath 源文件路径
+ * @param filename 源文件名（含扩展名）
+ * @returns 编译和运行的命令数组，如果没有找到配置则返回 null
+ */
+export function buildCompileCommands(
+	languageId: string,
+	dir: string,
+	filePath: string,
+	filename: string
+): { compile: string; run: string; outDir: string } | null {
+	const compileConfig = getCompileCommand(languageId);
+	if (!compileConfig) {
+		return null;
+	}
+
+	const outDir = ensureOutDir(dir);
+	const outName = path.parse(filename).name;
+
+	const compile = processCompileCommand(compileConfig.compile, filePath, outDir, outName);
+	const run = processCompileCommand(compileConfig.run, filePath, outDir, outName);
+
+	return { compile, run, outDir };
+}
+
+/**
+ * 清除输出目录
+ */
+export function clearOutDir(): void {
+	const pathInfo = getCurrentPath();
+	if (!pathInfo) {
+		vscode.window.showErrorMessage("无法获取当前文件路径!");
 		return;
 	}
-	console.log(task);
+
+	const { dir } = pathInfo;
+	const outDir = getCompileOutDir(dir);
+
+	if (fs.existsSync(outDir)) {
+		// 删除目录中的所有文件
+		const files = fs.readdirSync(outDir);
+		for (const file of files) {
+			const filePath = path.join(outDir, file);
+			fs.unlinkSync(filePath);
+		}
+		fs.rmdirSync(outDir);
+		vscode.window.showInformationMessage("✅ 已清除输出目录!");
+	} else {
+		vscode.window.showWarningMessage("输出目录不存在!");
+	}
+}
+
+/**
+ * 清除输出目录（旧函数名，保持兼容性）
+ * @deprecated 使用 clearOutDir 代替
+ */
+export function clear(): void {
+	clearOutDir();
 }

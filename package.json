@@ -42,7 +42,7 @@
 			"editor/title/run": [
 				{
 					"command": "runner.run",
-					"when": "editorLangId in config.runner.commands || editorLangId == objective-c"
+					"when": "editorLangId in config.runner.runCommands || editorLangId in config.runner.compileCommands || editorLangId == objective-c"
 				}
 			]
 		},
@@ -56,20 +56,60 @@
 			"type": "object",
 			"title": "Runner",
 			"properties": {
-				"runner.commands": {
+				"runner.runCommands": {
 					"type": "object",
-					"markdownDescription": "自定义语言运行命令 `languageId` : `command`",
+					"markdownDescription": "直接运行的命令配置 `languageId` : `command`。适用于解释型语言，如 JavaScript、Python 等。使用 `<file>` 作为文件路径占位符。",
 					"default": {
 						"javascript": "node <file>",
 						"typescript": "ts-node <file>",
 						"python": "python <file>",
 						"go": "go run <file>",
-						"c": "g++ <file>",
-						"rust": "rustc <file>"
+						"kotlinscript": "kotlinc -script <file>"
 					},
 					"additionalProperties": {
 						"type": "string"
 					}
+				},
+				"runner.compileCommands": {
+					"type": "object",
+					"markdownDescription": "需要编译后运行的命令配置。适用于编译型语言，如 C、C++、Rust、Kotlin 等。支持以下占位符：\n- `<file>`: 源文件路径\n- `<out>`: 输出文件路径（不含扩展名）\n- `<outDir>`: 输出目录",
+					"default": {
+						"c": {
+							"compile": "gcc <file> -o <outDir>/<out>",
+							"run": "<outDir>/<out>"
+						},
+						"cpp": {
+							"compile": "g++ <file> -o <outDir>/<out>",
+							"run": "<outDir>/<out>"
+						},
+						"rust": {
+							"compile": "rustc <file> -o <outDir>/<out>",
+							"run": "<outDir>/<out>"
+						},
+						"kotlin": {
+							"compile": "kotlinc <file> -include-runtime -d <outDir>/<out>.jar",
+							"run": "java -jar <outDir>/<out>.jar"
+						}
+					},
+					"additionalProperties": {
+						"type": "object",
+						"properties": {
+							"compile": {
+								"type": "string",
+								"description": "编译命令"
+							},
+							"run": {
+								"type": "string",
+								"description": "运行命令"
+							}
+						},
+						"required": ["compile", "run"]
+					}
+				},
+				"runner.compileOutDir": {
+					"type": "string",
+					"default": "out",
+					"description": "编译输出目录（相对路径）"
 				}
 			}
 		}
@@ -83,16 +123,16 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.76.0",
+		"@types/vscode": "^1.109.0",
 		"@types/glob": "^8.1.0",
-		"@types/mocha": "^10.0.1",
-		"@types/node": "16.x",
-		"@typescript-eslint/eslint-plugin": "^5.53.0",
-		"@typescript-eslint/parser": "^5.53.0",
-		"eslint": "^8.34.0",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^16.18.126",
+		"@typescript-eslint/eslint-plugin": "^5.62.0",
+		"@typescript-eslint/parser": "^5.62.0",
+		"eslint": "^8.57.1",
 		"glob": "^8.1.0",
-		"mocha": "^10.2.0",
+		"mocha": "^10.8.2",
 		"typescript": "^4.9.5",
-		"@vscode/test-electron": "^2.2.3"
+		"@vscode/test-electron": "^2.5.2"
 	}
 }

@@ -1,8 +1,6 @@
 import * as vscode from "vscode";
-import { compileCommend } from "./compile";
+import { buildCompileCommands } from "./compile";
 import * as path from "path";
-
-const LANGUAGE_LIST = ["c", "rust"];
 
 /**
  * 获取文件的语言ID
@@ -21,60 +19,96 @@ function getLanguageId(file: vscode.TextDocument | undefined): string {
 }
 
 /**
- * 根据文件的语言ID获取对应的命令。
- * @param languageId - 文件的语言ID，用于从配置中查找对应的命令。
- * @returns 与语言ID对应的命令，如果未找到则返回空字符串。
+ * 获取直接运行命令
+ * @param languageId 语言ID
+ * @returns 对应的命令，如果未找到则返回 null
  */
-function getCommand(languageId: string): string {
-    // 从工作区配置中获取 "runner" 部分的配置
-    const config = vscode.workspace.getConfiguration("runner");
-    // 深拷贝配置中的 "commands" 部分，避免直接修改原始配置
-    let commands = JSON.parse(JSON.stringify(config.get("commands")));
-    // 从 commands 对象中获取与 languageId 对应的命令，如果不存在则返回空字符串
-    let command: string = commands[languageId] || "";
-    return command;
+function getRunCommand(languageId: string): string | null {
+	const config = vscode.workspace.getConfiguration("runner");
+	const commands = config.get<Record<string, string>>("runCommands") || {};
+	return commands[languageId] || null;
 }
 
 /**
- * 使用 VS Code Tasks API 执行命令
+ * 使用 VS Code Tasks API 执行单个命令
  * 
- * 此函数使用 VS Code 官方的 Tasks API 来执行命令，这是比操作终端更可靠的方式
- * 它会自动处理工作目录，并在输出面板中显示结果
- * 
- * @param command 要执行的命令，其中的"<file>"会被替换为当前文件的路径
- * @param dir 当前文件所在的目录，用于设置任务的工作目录
- * @param filePath 当前文件的路径，用于替换命令中的"<file>"部分
+ * @param command 要执行的命令
+ * @param dir 工作目录
+ * @param name 任务名称
  */
-async function executeCommandViaTasks(command: string, dir: string, filePath: string) {
-	// 替换命令中的 <file> 占位符
-	const processedCommand = command.replace("<file>", filePath || "");
-	
+async function executeSingleCommand(command: string, dir: string, name: string): Promise<void> {
 	// 创建任务定义
 	const taskDefinition: vscode.TaskDefinition = {
 		type: "shell",
-		command: processedCommand,
+		command: command,
 	};
-	
+
 	// 创建 ShellExecution 来执行命令
-	const execution = new vscode.ShellExecution(processedCommand, {
-		cwd: dir, // 设置工作目录
+	const execution = new vscode.ShellExecution(command, {
+		cwd: dir,
 	});
-	
+
 	// 创建任务
 	const task = new vscode.Task(
 		taskDefinition,
 		vscode.TaskScope.Workspace,
-		"Runner",
+		name,
 		"runner",
 		execution
 	);
-	
+
 	// 执行任务
-	try {
-		await vscode.tasks.executeTask(task);
-	} catch (error) {
-		vscode.window.showErrorMessage(`Failed to execute task: ${error}`);
-	}
+	await vscode.tasks.executeTask(task);
+}
+
+/**
+ * 使用 VS Code Tasks API 执行编译和运行命令
+ * 
+ * 使用复合任务来确保编译成功后再运行
+ * 
+ * @param compileCommand 编译命令
+ * @param runCommand 运行命令
+ * @param dir 工作目录
+ * @param outDir 输出目录
+ */
+async function executeCompileAndRun(
+	compileCommand: string,
+	runCommand: string,
+	dir: string,
+	outDir: string
+): Promise<void> {
+	// Windows 下使用 && 连接命令，确保编译成功后才运行
+	const isWindows = process.platform === "win32";
+	const separator = isWindows ? " && " : " && ";
+
+	// 构建组合命令：先编译，成功后运行
+	const combinedCommand = `${compileCommand}${separator}${runCommand}`;
+
+	// 创建任务定义
+	const taskDefinition: vscode.TaskDefinition = {
+		type: "shell",
+		command: combinedCommand,
+	};
+
+	// 创建 ShellExecution
+	const execution = new vscode.ShellExecution(combinedCommand, {
+		cwd: dir,
+	});
+
+	// 创建任务
+	const task = new vscode.Task(
+		taskDefinition,
+		vscode.TaskScope.Workspace,
+		"Compile and Run",
+		"runner",
+		execution
+	);
+
+	// 设置任务分组为构建
+	task.group = vscode.TaskGroup.Build;
+
+	// 执行任务
+	await vscode.tasks.executeTask(task);
 }
 
 /**
@@ -86,21 +120,21 @@ export function getCurrentPath(): {
 	filePath: string;
 	filename: string;
 } | null {
-	const editor = vscode.window.activeTextEditor; // 获取当前活动的编辑器
+	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
 		vscode.window.showInformationMessage("No active editor found.");
 		return null;
 	}
 
-	const document = editor.document; // 获取当前文档
-	const uri = document.uri; // 获取文档的 URI
+	const document = editor.document;
+	const uri = document.uri;
 
 	// 获取完整文件路径
 	const filePath = uri.fsPath;
 
 	// 使用 path 模块解析目录路径和文件名
-	const dir = path.dirname(filePath); // 获取目录路径
-	const filename = path.basename(filePath); // 获取文件名
+	const dir = path.dirname(filePath);
+	const filename = path.basename(filePath);
 
 	return { dir, filePath, filename };
 }
@@ -110,42 +144,53 @@ export function getCurrentPath(): {
  * 该函数根据当前文件的编程语言获取相应的执行命令，并在终端中运行该命令
  */
 export async function runner() {
-    try {
-        // 获取当前活动的文本编辑器的文档
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage("No active editor found.");
-            return;
-        }
-        
-        const file = editor.document;
-        // 获取当前文件的编程语言标识符
-        const languageId = getLanguageId(file);
-        // 根据编程语言获取相应的执行命令
-        let command: string = getCommand(languageId);
+	try {
+		// 获取当前活动的文本编辑器的文档
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage("No active editor found.");
+			return;
+		}
 
-        // 如果没有找到对应的执行命令，则显示错误消息并返回
-        if (!command) {
-            vscode.window.showErrorMessage(`No command for ${languageId} !`);
-            return;
-        }
+		const file = editor.document;
+		// 获取当前文件的编程语言标识符
+		const languageId = getLanguageId(file);
 
-        // 获取当前文件的路径信息
-        const pathInfo = getCurrentPath();
-        if (!pathInfo) {
-            return;
-        }
-        
-        const { dir, filePath, filename } = pathInfo;
+		// 获取当前文件的路径信息
+		const pathInfo = getCurrentPath();
+		if (!pathInfo) {
+			return;
+		}
 
-        // 需要编译再执行的文件
-        if (LANGUAGE_LIST.includes(languageId)) {
-            command = compileCommend(command, dir, filename);
-        }
+		const { dir, filePath, filename } = pathInfo;
 
-        // 使用 Tasks API 执行命令
-        await executeCommandViaTasks(command, dir, filePath);
-    } catch (error) {
-        vscode.window.showErrorMessage(`Failed to run command: ${error}`);
-    }
+		// 首先尝试获取编译命令配置（适用于 C、C++、Rust 等）
+		const compileCommands = buildCompileCommands(languageId, dir, filePath, filename);
+
+		if (compileCommands) {
+			// 需要编译的语言：执行编译和运行
+			await executeCompileAndRun(
+				compileCommands.compile,
+				compileCommands.run,
+				dir,
+				compileCommands.outDir
+			);
+		} else {
+			// 尝试获取直接运行命令（适用于 JavaScript、Python 等）
+			const runCommand = getRunCommand(languageId);
+
+			if (!runCommand) {
+				vscode.window.showErrorMessage(`No command configured for language: ${languageId}`);
+				return;
+			}
+
+			// 替换命令中的 <file> 占位符
+			const processedCommand = runCommand.replace(/<file>/g, filePath);
+
+			// 直接运行
+			await executeSingleCommand(processedCommand, dir, `Run ${languageId}`);
+		}
+	} catch (error) {
+		vscode.window.showErrorMessage(`Failed to run command: ${error}`);
+	}
 }
