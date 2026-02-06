@@ -2,7 +2,7 @@
 	"name": "runner-morningstart",
 	"displayName": "File Runner",
 	"description": "runner for signal file",
-	"version": "0.3.0",
+	"version": "1.0.0",
 	"keywords": [
 		"code runner",
 		"runner",
@@ -106,7 +106,10 @@
 								"description": "运行命令"
 							}
 						},
-						"required": ["compile", "run"]
+						"required": [
+							"compile",
+							"run"
+						]
 					}
 				},
 				"runner.compileOutDir": {
