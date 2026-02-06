@@ -2,6 +2,13 @@
 
 All notable changes to the "runner" extension will be documented in this file.
 
+## [1.0.0] - 2026-02-06
+
+- **FEAT**: 添加 Kotlin、Objective-C 和 KotlinScript 语言支持
+- **DOCS**: 全面更新中英文 README 文档，完善功能说明和配置指南
+- **DOCS**: 添加多语言相关截图资源文件
+- **CHORE**: 更新 VS Code 引擎版本要求至 1.109.0
+
 ## [0.3.0] - 2025-02-06
 
 - **FEAT**: 使用 Tasks API 替代终端执行命令
